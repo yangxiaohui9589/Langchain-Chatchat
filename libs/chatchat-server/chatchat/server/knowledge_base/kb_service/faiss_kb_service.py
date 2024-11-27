@@ -66,6 +66,7 @@ class FaissKBService(KBService):
     def do_search(
         self,
         query: str,
+        user_security_level: int,
         top_k: int,
         score_threshold: float = Settings.kb_settings.SCORE_THRESHOLD,
     ) -> List[Tuple[Document, float]]:
@@ -76,6 +77,9 @@ class FaissKBService(KBService):
                 score_threshold=score_threshold,
             )
             docs = retriever.get_relevant_documents(query)
+            # 添加密级过滤
+            if user_security_level is not None:
+                docs = [doc for doc in docs if doc.metadata.get('security_level') <= user_security_level]
         return docs
 
     def do_add_doc(

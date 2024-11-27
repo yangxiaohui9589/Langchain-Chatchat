@@ -28,6 +28,8 @@ from langchain_core.embeddings import Embeddings
 from langchain_openai.chat_models import ChatOpenAI
 from langchain_openai.llms import OpenAI
 from memoization import cached, CachingAlgorithmFlag
+from pyarrow import nulls
+from sqlalchemy import Nullable
 
 from chatchat.settings import Settings, XF_MODELS_TYPES
 from chatchat.server.pydantic_v2 import BaseModel, Field
@@ -653,6 +655,21 @@ def get_prompt_template(type: str, name: str) -> Optional[str]:
     from chatchat.settings import Settings
 
     return Settings.prompt_settings.model_dump().get(type, {}).get(name)
+
+def get_server_settings() -> Optional[str]:
+    """
+    从basic_setting.yaml,kb_settings.yaml,model_settings.yaml中加载配置信息
+    """
+
+    from chatchat.settings import Settings
+
+    config = {
+        "basic_settings":Settings.basic_settings,
+        "kb_settings":Settings.kb_settings,
+        "model_settings":Settings.model_settings
+    }
+
+    return config
 
 
 def set_httpx_config(

@@ -313,6 +313,7 @@ class KnowledgeFile:
     def __init__(
         self,
         filename: str,
+        security_level:str,
         knowledge_base_name: str,
         loader_kwargs: Dict = {},
     ):
@@ -321,6 +322,7 @@ class KnowledgeFile:
         """
         self.kb_name = knowledge_base_name
         self.filename = str(Path(filename).as_posix())
+        self.security_level = security_level
         self.ext = os.path.splitext(filename)[-1].lower()
         if self.ext not in SUPPORTED_EXTS:
             raise ValueError(f"暂未支持的文件格式 {self.filename}")
@@ -411,13 +413,13 @@ class KnowledgeFile:
 
 def files2docs_in_thread_file2docs(
     *, file: KnowledgeFile, **kwargs
-) -> Tuple[bool, Tuple[str, str, List[Document]]]:
+) -> Tuple[bool, Tuple[str, str, str, List[Document]]]:
     try:
-        return True, (file.kb_name, file.filename, file.file2text(**kwargs))
+        return True, (file.kb_name, file.filename, file.security_level, file.file2text(**kwargs))
     except Exception as e:
         msg = f"从文件 {file.kb_name}/{file.filename} 加载文档时出错：{e}"
         logger.error(f"{e.__class__.__name__}: {msg}")
-        return False, (file.kb_name, file.filename, msg)
+        return False, (file.kb_name, file.filename, file.security_level, msg)
 
 
 def files2docs_in_thread(
@@ -439,12 +441,14 @@ def files2docs_in_thread(
             if isinstance(file, tuple) and len(file) >= 2:
                 filename = file[0]
                 kb_name = file[1]
-                file = KnowledgeFile(filename=filename, knowledge_base_name=kb_name)
+                security_level = file[2]
+                file = KnowledgeFile(filename=filename, knowledge_base_name=kb_name, security_level=security_level)
             elif isinstance(file, dict):
                 filename = file.pop("filename")
                 kb_name = file.pop("kb_name")
+                security_level = file.pop("security_level")
                 kwargs.update(file)
-                file = KnowledgeFile(filename=filename, knowledge_base_name=kb_name)
+                file = KnowledgeFile(filename=filename, knowledge_base_name=kb_name, security_level=security_level)
             kwargs["file"] = file
             kwargs["chunk_size"] = chunk_size
             kwargs["chunk_overlap"] = chunk_overlap

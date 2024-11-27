@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body
 
 from chatchat.server.types.server.response.base import BaseResponse
 from chatchat.settings import Settings
-from chatchat.server.utils import get_prompt_template, get_server_configs
+from chatchat.server.utils import get_prompt_template, get_server_configs, get_server_settings
 
 server_router = APIRouter(prefix="/server", tags=["Server State"])
 
@@ -28,3 +28,10 @@ def get_server_prompt_template(
     if prompt_template is None:
         return BaseResponse.error("Prompt template not found")
     return BaseResponse.success(prompt_template)
+
+@server_router.get("/get_server_settings", summary="获取Yaml配置信息", response_model=BaseResponse)
+def get_chatchat_server_settings():
+    basic_settings = get_server_settings()
+    if basic_settings is None:
+        return BaseResponse.error("Yaml settings not found")
+    return BaseResponse.success(basic_settings)

@@ -30,6 +30,7 @@ logger = build_logger()
 async def kb_chat(query: str = Body(..., description="用户输入", examples=["你好"]),
                 mode: Literal["local_kb", "temp_kb", "search_engine"] = Body("local_kb", description="知识来源"),
                 kb_name: str = Body("", description="mode=local_kb时为知识库名称；temp_kb时为临时知识库ID，search_engine时为搜索引擎名称", examples=["samples"]),
+                user_security_level: int = Body(0, description="用户密级信息", examples=["0"]),
                 top_k: int = Body(Settings.kb_settings.VECTOR_SEARCH_TOP_K, description="匹配向量数"),
                 score_threshold: float = Body(
                     Settings.kb_settings.SCORE_THRESHOLD,
@@ -79,6 +80,7 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                 docs = await run_in_threadpool(search_docs,
                                                 query=query,
                                                 knowledge_base_name=kb_name,
+                                                user_security_level=user_security_level,
                                                 top_k=top_k,
                                                 score_threshold=score_threshold,
                                                 file_name="",

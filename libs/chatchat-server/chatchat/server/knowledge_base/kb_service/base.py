@@ -133,6 +133,9 @@ class KBService(ABC):
             for doc in docs:
                 try:
                     doc.metadata.setdefault("source", kb_file.filename)
+                    #添加文件密级信息
+                    doc.metadata["security_level"] = kb_file.security_level
+
                     source = doc.metadata.get("source", "")
                     if os.path.isabs(source):
                         rel_path = Path(source).relative_to(self.doc_path)
@@ -201,13 +204,14 @@ class KBService(ABC):
     def search_docs(
         self,
         query: str,
+        user_security_level: int,
         top_k: int = Settings.kb_settings.VECTOR_SEARCH_TOP_K,
         score_threshold: float = Settings.kb_settings.SCORE_THRESHOLD,
     ) -> List[Document]:
         if not self.check_embed_model()[0]:
             return []
 
-        docs = self.do_search(query, top_k, score_threshold)
+        docs = self.do_search(query, user_security_level, top_k, score_threshold)
         return docs
 
     def get_doc_by_ids(self, ids: List[str]) -> List[Document]:
@@ -311,6 +315,7 @@ class KBService(ABC):
     def do_search(
         self,
         query: str,
+        user_security_level: int,
         top_k: int,
         score_threshold: float,
     ) -> List[Tuple[Document, float]]:

@@ -54,7 +54,7 @@ def search_docs(
         knowledge_base_name: str = Body(
             ..., description="知识库名称", examples=["samples"]
         ),
-        user_security_level: int = Body(0, description="用户密级"),
+        user_security_level: int = Body(2, description="用户密级"),
         top_k: int = Body(Settings.kb_settings.VECTOR_SEARCH_TOP_K, description="匹配向量数"),
         score_threshold: float = Body(
             Settings.kb_settings.SCORE_THRESHOLD,
@@ -310,10 +310,10 @@ def update_docs(
     for file_name in file_names:
         file_detail = get_file_detail(kb_name=knowledge_base_name, filename=file_name)
         #根据文件名称获取文件密级信息
-        if security_levels:
+        if security_levels and security_levels_dict.get(file_name):
             security_level = security_levels_dict.get(file_name)
         else:
-            security_level = 0
+            security_level = 2
 
         # 如果该文件之前使用了自定义docs，则根据参数决定略过或覆盖
         if file_detail.get("custom_docs") and not override_custom_docs:

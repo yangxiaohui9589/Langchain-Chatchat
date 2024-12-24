@@ -77,8 +77,9 @@ class FaissKBService(KBService):
                 score_threshold=score_threshold,
             )
             docs = retriever.get_relevant_documents(query)
-            # 添加密级过滤
+             # 添加密级过滤
             if user_security_level is not None:
+                print(f"用户的密级为: {user_security_level}")
                 docs = [doc for doc in docs if doc.metadata.get('security_level') <= user_security_level]
         return docs
 

@@ -135,6 +135,8 @@ class KBService(ABC):
                     doc.metadata.setdefault("source", kb_file.filename)
                     #添加文件密级信息
                     doc.metadata["security_level"] = kb_file.security_level
+                    #添加文件挂载节点信息
+                    doc.metadata["data_node_id"] = kb_file.data_node_id
 
                     source = doc.metadata.get("source", "")
                     if os.path.isabs(source):

@@ -163,6 +163,7 @@ def upload_docs(
             ..., description="知识库名称", examples=["samples"]
         ),
         security_levels: str = Form("", description="文件密级json字符串"),
+        data_node_id: str = Form("", description="数据节点字符串"),
         override: bool = Form(False, description="覆盖已有文件"),
         to_vector_store: bool = Form(True, description="上传文件后是否进行向量化"),
         chunk_size: int = Form(Settings.kb_settings.CHUNK_SIZE, description="知识库中单段文本最大长度"),
@@ -204,6 +205,7 @@ def upload_docs(
             knowledge_base_name=knowledge_base_name,
             file_names=file_names,
             security_levels=security_levels,
+            data_node_id=data_node_id,
             override_custom_docs=True,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
@@ -282,6 +284,7 @@ def update_docs(
             ..., description="文件名称，支持多文件", examples=[["file_name1", "text.txt"]]
         ),
         security_levels: str = Body("", description="文件密级信息", examples=["密级json字符串"]),
+        data_node_id: str = Body("", description="数据挂载节点id", examples=["数据挂载节点id"]),
         chunk_size: int = Body(Settings.kb_settings.CHUNK_SIZE, description="知识库中单段文本最大长度"),
         chunk_overlap: int = Body(Settings.kb_settings.OVERLAP_SIZE, description="知识库中相邻文本重合长度"),
         zh_title_enhance: bool = Body(Settings.kb_settings.ZH_TITLE_ENHANCE, description="是否开启中文标题加强"),
@@ -303,6 +306,9 @@ def update_docs(
     kb_files = []
     docs = json.loads(docs) if docs else {}
 
+    if not data_node_id:
+        data_node_id = knowledge_base_name
+
     #文件密级信息
     security_levels_dict = json.loads(security_levels) if security_levels else {}
 
@@ -322,7 +328,7 @@ def update_docs(
             try:
                 kb_files.append(
                     KnowledgeFile(
-                        filename=file_name, knowledge_base_name=knowledge_base_name, security_level=security_level
+                        filename=file_name, knowledge_base_name=knowledge_base_name, security_level=security_level, data_node_id=data_node_id
                     )
                 )
             except Exception as e:
@@ -339,9 +345,9 @@ def update_docs(
             zh_title_enhance=zh_title_enhance,
     ):
         if status:
-            kb_name, file_name, security_level, new_docs = result
+            kb_name, file_name, security_level, data_node_id, new_docs = result
             kb_file = KnowledgeFile(
-                filename=file_name, knowledge_base_name=knowledge_base_name, security_level=security_level
+                filename=file_name, knowledge_base_name=knowledge_base_name, security_level=security_level, data_node_id=data_node_id
             )
             kb_file.splited_docs = new_docs
             kb.update_doc(kb_file, not_refresh_vs_cache=True)
@@ -353,14 +359,14 @@ def update_docs(
     for file_name, v in docs.items():
         try:
             # 根据文件名称获取文件密级信息
-            if security_levels:
+            if security_levels and security_levels_dict.get(file_name):
                 security_level = security_levels_dict.get(file_name)
             else:
-                security_level = 0
+                security_level = 2
 
             v = [x if isinstance(x, Document) else Document(**x) for x in v]
             kb_file = KnowledgeFile(
-                filename=file_name, knowledge_base_name=knowledge_base_name, security_level=security_level
+                filename=file_name, knowledge_base_name=knowledge_base_name, security_level=security_level, data_node_id=data_node_id
             )
             kb.update_doc(kb_file, docs=v, not_refresh_vs_cache=True)
         except Exception as e:

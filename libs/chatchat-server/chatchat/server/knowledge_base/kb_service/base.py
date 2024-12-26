@@ -207,13 +207,14 @@ class KBService(ABC):
         self,
         query: str,
         user_security_level: int,
+        data_node_ids: str,
         top_k: int = Settings.kb_settings.VECTOR_SEARCH_TOP_K,
         score_threshold: float = Settings.kb_settings.SCORE_THRESHOLD,
     ) -> List[Document]:
         if not self.check_embed_model()[0]:
             return []
 
-        docs = self.do_search(query, user_security_level, top_k, score_threshold)
+        docs = self.do_search(query, user_security_level, data_node_ids, top_k, score_threshold)
         return docs
 
     def get_doc_by_ids(self, ids: List[str]) -> List[Document]:
@@ -318,6 +319,7 @@ class KBService(ABC):
         self,
         query: str,
         user_security_level: int,
+        data_node_ids: str,
         top_k: int,
         score_threshold: float,
     ) -> List[Tuple[Document, float]]:

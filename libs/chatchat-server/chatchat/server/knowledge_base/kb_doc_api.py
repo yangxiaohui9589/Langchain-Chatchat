@@ -55,6 +55,7 @@ def search_docs(
             ..., description="知识库名称", examples=["samples"]
         ),
         user_security_level: int = Body(2, description="用户密级"),
+        data_node_ids: str = Body("", description="数据节点信息"),
         top_k: int = Body(Settings.kb_settings.VECTOR_SEARCH_TOP_K, description="匹配向量数"),
         score_threshold: float = Body(
             Settings.kb_settings.SCORE_THRESHOLD,
@@ -71,7 +72,7 @@ def search_docs(
     data = []
     if kb is not None:
         if query:
-            docs = kb.search_docs(query, user_security_level,top_k, score_threshold)
+            docs = kb.search_docs(query, user_security_level, data_node_ids, top_k, score_threshold)
             # data = [DocumentWithVSId(**x[0].dict(), score=x[1], id=x[0].metadata.get("id")) for x in docs]
             data = [DocumentWithVSId(**{"id": x.metadata.get("id"), **x.dict()}) for x in docs]
         elif file_name or metadata:

@@ -67,6 +67,7 @@ class FaissKBService(KBService):
         self,
         query: str,
         user_security_level: int,
+        data_node_ids: str,
         top_k: int,
         score_threshold: float = Settings.kb_settings.SCORE_THRESHOLD,
     ) -> List[Tuple[Document, float]]:
@@ -77,10 +78,29 @@ class FaissKBService(KBService):
                 score_threshold=score_threshold,
             )
             docs = retriever.get_relevant_documents(query)
-             # 添加密级过滤
+            # 添加密级过滤
             if user_security_level is not None:
                 print(f"用户的密级为: {user_security_level}")
                 docs = [doc for doc in docs if doc.metadata.get('security_level') <= user_security_level]
+
+            # 打印结果
+            print("密级过滤后的文档:")
+            for doc in docs:
+                print(doc.metadata)
+
+            # 添加节点过滤
+            if data_node_ids:
+                print(f"选择节点为: {data_node_ids}")
+                # 切分 data_node_ids 字符串
+                data_node_id_list = data_node_ids.split(",")
+                # 过滤 docs 根据 data_node_id
+                docs = [doc for doc in docs if doc.metadata.get('data_node_id') in data_node_id_list]
+
+            # 打印结果
+            print("节点过滤后的文档:")
+            for doc in docs:
+                print(doc.metadata)
+
         return docs
 
     def do_add_doc(
